@@ -50,7 +50,7 @@ void N_Data_Individual__ind(KnxAddress destination_address, uint8_t hop_count_ty
 #endif
 
     T_Data_Individual__ind(hop_count_type, octet_count, priority,
-                           address_table_get_tsap(destination_address), nsdu);
+                           source_address, nsdu);
 }
 
 /**

@@ -14,6 +14,24 @@ static uint8_t tx_busy = 0;
 static uint8_t tx_index = 0;
 static uint8_t hop_count_type = 6;
 
+
+
+static enum N_Mode {
+    None,
+    Data_Individual,
+    Data_Group,
+    Data_Broadcast,
+    Data_SystemBroadcast
+} _mode = None;
+
+static KnxAddress _destination_address;
+static uint8_t _hop_count_type;
+static uint8_t _octet_count;
+static Priority _priority;
+static KnxAddress _source_address;
+static uint8_t *_nsdu;
+
+
 void L_Data__req(uint8_t ack_request, AddressType address_type, KnxAddress destination_address,
                  FrameFormat frame_format, uint8_t *lsdu, uint8_t octet_count, Priority priority,
                  KnxAddress source_address)
@@ -121,6 +139,18 @@ void L_Data__ind(uint8_t ack_request, AddressType address_type, KnxAddress desti
     console_print_string(")\r\n");
 #endif
 
+    if(_mode != None)
+    {
+        // TIMING ERROR !!!!
+        return;
+    }
+    _destination_address = destination_address;
+    _hop_count_type = LSDU_HOP_COUNT(lsdu);
+    _octet_count = octet_count - 1;
+    _priority = priority;
+    _source_address = source_address;
+    _nsdu = lsdu + 1;
+
     if (frame_format == L_Data_Standard)
     {
         if (address_type == Individual)
@@ -137,10 +167,10 @@ void L_Data__ind(uint8_t ack_request, AddressType address_type, KnxAddress desti
             {
                 if (ack_request)
                 {
-                    /* TODO: Send back ACK here ? */
+                    /* Send back ACK here */
+                    Ph_Data__req(Req_ack_char, FRAME_ACK);
                 }
-                N_Data_Individual__ind(destination_address, LSDU_HOP_COUNT(lsdu), octet_count - 1,
-                                       priority, source_address, lsdu + 1);
+                _mode = Data_Individual;
             }
         }
         else /* Multicast */
@@ -162,10 +192,11 @@ void L_Data__ind(uint8_t ack_request, AddressType address_type, KnxAddress desti
                         /* Send back ACK here */
                         Ph_Data__req(Req_ack_char, FRAME_ACK);
                     }
-                    N_Data_Group__ind(destination_address,
-                                      (LSDU_HOP_COUNT(lsdu) == 7) ? (UnlimitedRouting)
-                                                                  : (NetworkLayerParameter),
-                                      octet_count - 1, priority, lsdu + 1, source_address);
+                    _hop_count_type = (LSDU_HOP_COUNT(lsdu) == 7)
+                                            ? (UnlimitedRouting)
+                                            : (NetworkLayerParameter);
+
+                    _mode = Data_Group;
                 }
             }
             else
@@ -184,8 +215,7 @@ void L_Data__ind(uint8_t ack_request, AddressType address_type, KnxAddress desti
                     Ph_Data__req(Req_ack_char, FRAME_ACK);
                 }
 
-                N_Data_Broadcast__ind(LSDU_HOP_COUNT(lsdu), octet_count - 1, priority,
-                                      source_address, lsdu + 1);
+                _mode = Data_Broadcast;
             }
         }
     }
@@ -217,8 +247,14 @@ void L_SystemBroadcast__ind(uint8_t ack_request, AddressType address_type,
     print_source_address(source_address);
     console_print_string(")\r\n");
 #endif
-    N_Data_SystemBroadcast__ind(LSDU_HOP_COUNT(lsdu), lsdu + 1, octet_count, priority,
-                                source_address);
+
+    _destination_address = destination_address;
+    _hop_count_type = LSDU_HOP_COUNT(lsdu);
+    _octet_count = octet_count - 1;
+    _priority = priority;
+    _source_address = source_address;
+    _nsdu = lsdu + 1;
+    _mode = Data_SystemBroadcast;
 }
 
 typedef enum
@@ -239,6 +275,48 @@ void L_Loop()
     case L_STATE_POWER_ON:
         l_state = L_STATE_WAIT_FOR_RESET;
         Ph_Reset__req();
+        break;
+    case L_STATE_NOMAL_MODE_IDLE:
+        switch(_mode)
+        {
+            case None:
+                break;
+            case Data_Individual:
+                N_Data_Individual__ind(
+                    _destination_address,
+                    _hop_count_type,
+                    _octet_count,
+                    _priority,
+                    _source_address,
+                    _nsdu);
+                break;
+            case Data_Group:
+                N_Data_Group__ind(
+                    _destination_address,
+                    _hop_count_type,
+                    _octet_count,
+                    _priority,
+                    _nsdu,
+                    _source_address);
+                break;
+            case Data_Broadcast:
+                N_Data_Broadcast__ind(
+                    _hop_count_type,
+                    _octet_count,
+                    _priority,
+                    _source_address,
+                    _nsdu);
+                break;
+            case Data_SystemBroadcast:
+                N_Data_SystemBroadcast__ind(
+                    _hop_count_type,
+                    _nsdu,
+                    _octet_count,
+                    _priority,
+                    _source_address);
+                break;
+        }
+        _mode = None;
         break;
     default:
         break;

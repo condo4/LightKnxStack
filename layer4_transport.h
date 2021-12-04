@@ -203,7 +203,7 @@ void T_Data_Individual__con(uint8_t ack_request, uint8_t hop_count_type, uint8_t
  * remote partner) \param tsdu: is the user data that has been transferred by Transport Layer
  */
 void T_Data_Individual__ind(uint8_t hop_count_type, uint8_t octet_count, Priority priority,
-                            uint8_t TSAP, uint8_t *tsdu);
+                            KnxAddress source_address, uint8_t *tsdu);
 
 /* 3.7 T_Connect Service */
 
