@@ -5,6 +5,7 @@
 #include "object_device.h"
 #include "debug.h"
 
+extern uint32_t millis();
 
 /* State Machine of Connection-Oriented Communication Mode */
 enum StateType {
@@ -16,19 +17,23 @@ enum StateType {
 static KnxAddress _connection_address;
 static uint8_t _seqNoSend;
 static uint8_t _seqNoRcv;
-static int _connection_timeout_timer;
+static int _connection_timeout_timer = 0;
 static int _acknowledgment_timeout_timer;
 static int _rep_count;
 static int _current_state = CLOSED;
 
 #define MAX_REP_COUNT 3
 
+#define NOT_USED(x) ( (void)(x) )
+
 /*
  * Do nothing
  */
 void A0(KnxAddress source, Priority priority, uint8_t *data)
 {
-
+    NOT_USED(source);
+    NOT_USED(priority);
+    NOT_USED(data);
 }
 
 /*
@@ -40,10 +45,10 @@ void A0(KnxAddress source, Priority priority, uint8_t *data)
 void A1(KnxAddress source, Priority priority, uint8_t *data)
 {
     _connection_address = source;
-    //TODO application_connect_indication(source);
+    A_Connect__ind(source);
     _seqNoSend = 0;
     _seqNoRcv = 0;
-    // TODO enable_connection_timeout();
+    _connection_timeout_timer = millis();
     _current_state = OPEN_IDLE;
 }
 

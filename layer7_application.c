@@ -136,3 +136,11 @@ void A_IndividualAddress_Read__res(uint8_t ack_request, Priority priority, uint8
 
     T_Data_Broadcast__req(ack_request, hop_count_type, 2, priority, pdu);
 }
+
+
+
+void A_Connect__ind(KnxAddress source)
+{
+
+}
+

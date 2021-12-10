@@ -890,4 +890,13 @@ void A_NetworkParameter_Read__Acon(
 
 /* 3.4.3.1 A_PropertyValue_Read-service */
 
+
+
+/* 3.5.1 */
+
+void A_Connect__ind(KnxAddress source);
+
+
+
+
 #endif

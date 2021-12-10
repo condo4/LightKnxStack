@@ -484,3 +484,8 @@ void Ph_Knx_Start_Transmit(Priority priority, volatile uint8_t *data, uint8_t le
     _tx = data;
     _tx_len = len;
 }
+
+
+uint32_t millis() {
+    return HAL_GetTick();
+}
