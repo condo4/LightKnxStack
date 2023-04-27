@@ -2,6 +2,7 @@
 #define __LAYER2_DATA_LINK__
 
 #include "knx_types.h"
+#include "layer1_physical.h"
 
 /* 2.2 L_Data service */
 
