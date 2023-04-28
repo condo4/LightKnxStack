@@ -2,18 +2,11 @@
 #define __OBJECT_DEVICE__
 
 #include "object_interface.h"
+#include "platform.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-uint16_t device_induvidual_address();
 void device_induvidual_address_set(uint16_t value);
 bool device_induvidual_address_duplication();
 void device_induvidual_address_duplication_set(bool value);
-
-bool device_prog_mode();
-void device_prog_mode_set(bool value);
 
 uint16_t device_manufacturer_id();
 void device_manufacturer_id_set(uint16_t value);
@@ -60,11 +53,5 @@ void device_read_property(PropertyID propertyId, uint32_t start, uint32_t *count
 void device_write_property(PropertyID id, uint8_t start, uint8_t *data, uint8_t count);
 uint8_t device_object_property_size(PropertyID id);
 
-/* To implement in the board file */
-void device_prog_mode_change(bool newvalue);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
