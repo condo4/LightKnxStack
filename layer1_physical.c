@@ -8,7 +8,7 @@
 #include <layer2_data_link.h>
 #include <platform.h>
 //#include <object_device.h>
-//#include <debug.h>
+#include <debug.h>
 
 #ifdef DEBUG_LAYER_PHYSICAL
 #define DEBUG
@@ -41,37 +41,52 @@ static unsigned char m_state = STATE_RESET;
 static unsigned char m_send_msg[4];
 static unsigned char m_recive_msg[64];
 static unsigned char m_rx_index = 0;
+static unsigned char m_tx_index = 0;
+static unsigned char m_to_send = 0;
 
 
 #define RX_BUS_BUSY -1
 #define RX_BUS_FREE 0
 #define RX_FRAME_IN_PROPGRESS 1;
 static int m_rx_state = RX_BUS_BUSY;
-static bool m_need_confirmation = false;
-static bool m_can_confirm = false;
 
 
 
 /* SERVICES FROM HOST CONTROLLER */
 void send_to_controler(size_t size)
 {
-    int i;
-    for(i=0; i < size; i++)
-    {
+    m_to_send = size;
+    m_tx_index = 0;
+
 #ifdef DEBUG
-        console_print_char('<');
-        console_print_hex(m_send_msg[i]);
-        console_print_char('>');
+    console_print_char('>');
+    console_print_hex(m_send_msg[m_tx_index]);
+    console_print_char(' ');
 #endif
-        device_uart_tx(&m_send_msg[i]);
-    }
-    //console_print_string("\r\n");
-    if(m_need_confirmation)
-    {
-        m_can_confirm = true;
-    }
+    device_uart_tx(&m_send_msg[m_tx_index]);
 }
 
+
+void device_uart_tx_confirm()
+{
+    /* !!! ISR context !!! */
+    m_tx_index++;
+    if(m_tx_index < m_to_send)
+    {
+        device_uart_tx(&m_send_msg[m_tx_index]);
+        return;
+    }
+
+    /* EOT */
+    m_tx_index = 0;
+    m_to_send = 0;
+
+#ifdef DEBUG
+    console_print_string("\r\n");
+#endif
+
+    Ph_Data__con(l_ok);
+}
 
 void U_Reset__req()
 {
@@ -302,10 +317,6 @@ void EOF_TIMER_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     }
 }
 
-void device_uart_tx_confirm()
-{
-    Ph_Data__con(p_ok);
-}
 
 
 
@@ -347,13 +358,6 @@ void Ph_Loop(void)
             knx_btn_state = false;
         }
     }
-
-    if(m_need_confirmation && m_can_confirm)
-    {
-        m_need_confirmation = false;
-        m_can_confirm = false;
-        Ph_Data__con(l_ok);
-    }
 }
 
 void Ph_Reset__req()
@@ -364,7 +368,7 @@ void Ph_Reset__req()
 
 void Ph_Data__con(P_Status p_status)
 {
-    //console_print_char('+');
+    /* !!! ISR context !!! */
     L_Data__con(0,0,0,0,0,0,0,l_ok);
 }
 
@@ -377,16 +381,13 @@ void Ph_Data__req(Ph_Data_Req_Class p_class, uint8_t p_data)
     switch(p_class)
     {
         case Req_start_of_Frame:
-            m_need_confirmation = true;
             U_L_DataStart__req(p_data);
             l_index = 0;
             break;
         case Req_inner_Frame_char:
-            m_need_confirmation = true;
             U_L_DataCont__req(l_index, p_data);
             break;
         case Req_end_of_Frame:
-            m_need_confirmation = true;
             U_L_DataEnd__req(l_index, p_data);
             break;
         case Req_ack_char:
@@ -403,6 +404,7 @@ void Ph_Data__req(Ph_Data_Req_Class p_class, uint8_t p_data)
 
 void device_uart_rx(unsigned char byte)
 {
+    /* !!! ISR context !!! */
     if(htim6.Instance->CR1 && TIM_CR1_CEN)
     {
         HAL_TIM_Base_Stop(&htim6);
@@ -410,9 +412,8 @@ void device_uart_rx(unsigned char byte)
     m_recive_msg[m_rx_index++] = byte;
 
 #ifdef DEBUG
-    console_print_char('[');
     console_print_hex(byte);
-    console_print_char(']');
+    console_print_char(' ');
 #endif
 
     /* DLL (LAYER 2) SERVICES (DEVICE IS TRANSPARENT) */

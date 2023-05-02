@@ -5,6 +5,9 @@
 #include "object_address_table.h"
 #include "debug.h"
 
+#ifdef DEBUG_LAYER_DATA_LINK
+#define DEBUG
+#endif
 /* This layer must be the last layer synchronious since it control the ACK */
 
 static volatile uint8_t TX[MAX_KNX_TELEGRAM_SIZE] = {
@@ -21,7 +24,8 @@ static enum N_Mode {
     Data_Individual,
     Data_Group,
     Data_Broadcast,
-    Data_SystemBroadcast
+    Data_SystemBroadcast,
+    Data_Individual_confirm,
 } _mode = None;
 
 static KnxAddress _destination_address;
@@ -31,7 +35,7 @@ static Priority _priority;
 static KnxAddress _source_address;
 static uint8_t *_nsdu;
 
-static uint8_t _tx_octet_count;
+static volatile uint8_t _tx_octet_count;
 void L_Data__req(uint8_t ack_request, AddressType address_type, KnxAddress destination_address,
                  FrameFormat frame_format, uint8_t *lsdu, uint8_t octet_count, Priority priority,
                  KnxAddress source_address)
@@ -39,12 +43,32 @@ void L_Data__req(uint8_t ack_request, AddressType address_type, KnxAddress desti
     int i;
     uint8_t crc = 0;
 
+#if defined(DEBUG)
+    console_print_string("L_Data__req(");
+    console_print_int(ack_request);
+    console_print_string(", ");
+    console_print_int(address_type);
+    console_print_string(", ");
+    console_print_dev_addr(destination_address);
+    console_print_string(", ");
+    console_print_int(frame_format);
+    console_print_string(", ");
+    console_print_bytes(lsdu, octet_count);
+    console_print_string(", ");
+    console_print_int(octet_count);
+    console_print_string(", ");
+    print_priority(priority);
+    console_print_string(", ");
+    console_print_dev_addr(source_address);
+    console_print_string(")\r\n");
+#endif
+
     if (tx_busy)
     {
         console_print_string("ERROR, L_Data__req BUSY\r\n");
         return;
     }
-    // tx_busy = 1;
+    tx_busy = 1;
 
     /* Control Byte */
     TX[0] = 0x30; /* L_Data-Frame */
@@ -73,7 +97,7 @@ void L_Data__req(uint8_t ack_request, AddressType address_type, KnxAddress desti
         crc ^= TX[i];
     TX[6 + octet_count] = ~crc;
 
-#ifdef DEBUG_LAYER_LOW_DATA_LINK
+#ifdef DEBUG
     console_print_string("<--- ");
     console_print_bytes((uint8_t *)TX, octet_count + 7);
     console_print_string("\r\n");
@@ -91,14 +115,19 @@ void L_Data__req(uint8_t ack_request, AddressType address_type, KnxAddress desti
     console_print_char(': ');
     console_print_int(tx_index);
     console_print_string("} ");
-*/
+    */
     Ph_Data__req(Req_start_of_Frame, TX[tx_index++]);
+
+    /* Wait for end of transmition, managed by ISR */
+    while(_tx_octet_count > 0){}
+
 }
 
 void L_Data__con(AddressType address_type, KnxAddress destination_address, FrameFormat frame_format,
                  uint8_t octet_count, Priority priority, KnxAddress source_address, uint8_t *lsdu,
                  L_Status l_status)
 {
+    /* !!! ISR context !!! */
     if (l_status == l_ok)
     {
         /* Send next byte */
@@ -114,18 +143,10 @@ void L_Data__con(AddressType address_type, KnxAddress destination_address, Frame
             tx_busy = 0;
             tx_index = 0;
             _tx_octet_count = 0;
-            //console_print_string("{E}");
+            _mode = Data_Individual_confirm;
             return;
         }
-        /*
-        console_print_string("{W ");
-        console_print_hex(TX[tx_index]);
-        console_print_char(': ');
-        console_print_int(tx_index);
-        console_print_string("/");
-        console_print_int(_tx_octet_count);
-        console_print_string("} ");
-        */
+
         Ph_Data__req((tx_index == _tx_octet_count)?(Req_end_of_Frame):(Req_inner_Frame_char), TX[tx_index]);
         ++tx_index;
     }
@@ -311,6 +332,17 @@ void L_Loop()
         switch(_mode)
         {
             case None:
+                break;
+
+            case Data_Individual_confirm:
+                N_Data_Individual__con(
+                    0,
+                    _destination_address,
+                    6,
+                    _octet_count,
+                    _priority,
+                    _nsdu,
+                    n_ok);
                 break;
             case Data_Individual:
                 N_Data_Individual__ind(

@@ -127,6 +127,9 @@ void device_write_property(PropertyID id, uint8_t start, uint8_t *data, uint8_t 
 
 uint16_t device_induvidual_address()
 {
+    /* I don't know why, if return 0, ETS don't see my Response Frames */
+    if(_ownAddress == 0)
+        return 0x1000;
     return _ownAddress;
 }
 

@@ -53,6 +53,11 @@
 #define A_Link_Write (0x3E7)
 #define A_FileStream_InfoReport (0x3F0)
 
+
+/* Device Descriptor */
+#define DeviceDescriptor_SystemB 0x07B0
+
+
 /* 3.1   Application Layer services on Multicast Communication Mode */
 
 /* 3.1.2 A_GroupValue_Read-service */

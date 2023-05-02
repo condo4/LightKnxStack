@@ -3,6 +3,8 @@
 
 #include "knx_types.h"
 
+#define T_ACK_PDU 0xC2
+
 /* 3.2  T_Data_Group Service */
 
 /**

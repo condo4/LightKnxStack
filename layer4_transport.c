@@ -61,7 +61,8 @@ void A1(KnxAddress source, Priority priority, uint8_t *data, uint8_t octet_count
  */
 void A2(KnxAddress source, Priority priority, uint8_t *data, uint8_t octet_count)
 {
-    N_Data_Individual__req(1, _connection_address, 6, 1, priority, &_seqNoRcv);
+    uint8_t ret = T_ACK_PDU | (_seqNoRcv << 2);
+    N_Data_Individual__req(1, _connection_address, 6, 1, priority, &ret);
 
     _seqNoRcv += 1;
     if(_seqNoRcv > 0xf)
@@ -534,7 +535,9 @@ void T_Data_Individual__ind(uint8_t hop_count_type, uint8_t octet_count, Priorit
         console_print_char(' ');
     }
     console_print_hex(tsdu[octet_count - 1]);
-    console_print_string("]\r\n");
+    console_print_string("] pdu = ");
+    console_print_hex(pdu_type(tsdu[0]));
+    console_print_string("\r\n");
 #endif
 
     switch(pdu_type(tsdu[0])) {
@@ -893,6 +896,44 @@ void T_Data_Broadcast__ind(uint8_t hop_count_type, uint8_t octet_count, Priority
     }
 }
 
+
+/**
+ * \fn T_Data_Individual.req(ack_request, hop_count_type, octet_count, priority, TSAP, tsdu)
+ * \param ack_request: Data Link Layer Acknowledge requested or don’t care
+ * \param hop_count_type: hop count 7 or Network Layer Parameter
+ * \param octet_count: length information as described in Data Link Layer
+ * \param priority: highest, urgent, normal or low priority
+ * \param TSAP: identifier of the service access point (may be direct the Individual Address of the
+ * remote partner) \param tsdu: is the user data to be transferred by Transport Layer
+ */
+void T_Data_Individual__req(uint8_t ack_request, uint8_t hop_count_type, uint8_t octet_count,
+                            Priority priority, uint8_t TSAP, uint8_t *tsdu)
+{
+#ifdef DEBUG_LAYER_TRANSPORT
+    int i;
+    console_print_string("T_Data_Individual__req(");
+    console_print_int(ack_request);
+    console_print_char(',');
+    console_print_int(hop_count_type);
+    console_print_char(',');
+    console_print_int(octet_count);
+    console_print_char(',');
+    print_priority(priority);
+    console_print_char(',');
+    print_source_address(TSAP);
+    console_print_string(", [");
+    for (int i = 0; i < octet_count - 1; i++)
+    {
+        console_print_hex(tsdu[i]);
+        console_print_char(' ');
+    }
+    console_print_hex(tsdu[octet_count - 1]);
+    console_print_string("])\r\n");
+#endif
+    N_Data_Individual__req(ack_request, TSAP, hop_count_type, octet_count, priority, tsdu);
+}
+
+
 /**
  * \fn T_Data_Connected.ind(octet_count, priority, TSAP, tsdu)
  * \param octet_count: length information as described in Data Link Layer
@@ -921,12 +962,13 @@ void T_Data_Connected__ind(uint8_t octet_count, Priority priority, uint8_t TSAP,
     console_print_string("])\r\n");
 #endif
 
-    uint16_t pdu = (tsdu[0] << 8 | tsdu[1]) & 0x03FF;
+    uint16_t pdu = (tsdu[0] << 8 | tsdu[1]) & 0x03C0;
+    uint8_t type = tsdu[1] & 0x3F;
 
     switch (pdu)
     {
     case A_DeviceDescriptor_Read:
-
+        A_DeviceDescriptor_Read__ind(priority, 6, TSAP, type);
         break;
 
     default:

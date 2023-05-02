@@ -2,7 +2,7 @@
 #define __OBJECT_DEVICE__
 
 #include "object_interface.h"
-#include "platform.h"
+#include <platform.h>
 
 void device_induvidual_address_set(uint16_t value);
 bool device_induvidual_address_duplication();

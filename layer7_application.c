@@ -198,10 +198,21 @@ void A_Connect__ind(KnxAddress source)
  */
 void A_DeviceDescriptor_Read__ind(Priority priority, uint8_t hop_count_type, uint8_t ASAP, uint8_t descriptor_type)
 {
+#if defined(DEBUG_LAYER_APPLICATION)
+    console_print_string("A_DeviceDescriptor_Read__ind(");
+    print_priority(priority);
+    console_print_string(", ");
+    console_print_int(hop_count_type);
+    console_print_string(", ");
+    print_source_address(ASAP);
+    console_print_string(", ");
+    console_print_hex(descriptor_type);
+    console_print_string(")\r\n");
+#endif
     switch(descriptor_type)
     {
     case 0:
-        A_DeviceDescriptor_Read__res(1, priority, hop_count_type, ASAP, descriptor_type, 0x0701);
+        A_DeviceDescriptor_Read__res(1, priority, hop_count_type, ASAP, descriptor_type, DeviceDescriptor_SystemB);
         break;
     default:
         console_print_string("TODO: A_DeviceDescriptor_Read__ind with type = ");
@@ -214,5 +225,27 @@ void A_DeviceDescriptor_Read__ind(Priority priority, uint8_t hop_count_type, uin
 void A_DeviceDescriptor_Read__res(uint8_t ack_request, Priority priority, uint8_t hop_count_type, uint8_t ASAP, uint8_t descriptor_type,
                                   uint16_t device_descriptor)
 {
-// A_DeviceDescriptor_Response
+#if defined(DEBUG_LAYER_APPLICATION)
+    console_print_string("A_DeviceDescriptor_Read__res(");
+    console_print_int(ack_request);
+    console_print_string(", ");
+    print_priority(priority);
+    console_print_string(", ");
+    console_print_int(hop_count_type);
+    console_print_string(", ");
+    print_source_address(ASAP);
+    console_print_string(", ");
+    console_print_hex(descriptor_type);
+    console_print_string(", ");
+    console_print_hex(device_descriptor >> 8);
+    console_print_hex(device_descriptor & 0xFF);
+    console_print_string(")\r\n");
+#endif
+    uint8_t tsdu[4];
+    tsdu[0] = (A_DeviceDescriptor_Response >> 8);
+    tsdu[1] = (A_DeviceDescriptor_Response & 0xC0);
+    tsdu[1] |= descriptor_type;
+    tsdu[2] = device_descriptor >> 8;
+    tsdu[3] = device_descriptor & 0xFF;
+    T_Data_Individual__req(ack_request, hop_count_type, 4, priority, ASAP, tsdu);
 }
