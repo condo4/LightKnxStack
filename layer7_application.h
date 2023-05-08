@@ -69,7 +69,7 @@
  * \param hop_count_type: hop count 7 or standard
  * \param priority: system, urgent, normal or low priority
  */
-void A_GroupValue_Read__req(uint8_t ack_request, uint8_t ASAP, Priority priority,
+void A_GroupValue_Read__req(uint8_t ack_request, uint16_t ASAP, Priority priority,
                             uint8_t hop_count_type);
 
 /**
@@ -81,7 +81,7 @@ void A_GroupValue_Read__req(uint8_t ack_request, uint8_t ASAP, Priority priority
  * \param a_status: ok: A_GroupValue_Read.req sent successfully with T_Data_Group service not_ok:
  * transmission of the associated T_Data_Group request frame did not succeed
  */
-void A_GroupValue_Read__Lcon(uint8_t ack_request, uint8_t ASAP, Priority priority,
+void A_GroupValue_Read__Lcon(uint8_t ack_request, uint16_t ASAP, Priority priority,
                              uint8_t hop_count_type, A_Status a_status);
 
 /**
@@ -90,7 +90,7 @@ void A_GroupValue_Read__Lcon(uint8_t ack_request, uint8_t ASAP, Priority priorit
  * \param hop_count_type: hop count 7 or standard
  * \param priority: system, urgent, normal or low priority
  */
-void A_GroupValue_Read__ind(uint8_t ASAP, Priority priority, uint8_t hop_count_type);
+void A_GroupValue_Read__ind(uint16_t ASAP, Priority priority, uint8_t hop_count_type);
 
 /**
  * \fn A_GroupValue_Read.res(ack_request, ASAP, priority, hop_count_type, data)
@@ -100,7 +100,7 @@ void A_GroupValue_Read__ind(uint8_t ASAP, Priority priority, uint8_t hop_count_t
  * \param priority: system, urgent, normal or low priority
  * \param data: the value of the associated Service Access Point
  */
-void A_GroupValue_Read__res(uint8_t ack_request, uint8_t ASAP, Priority priority,
+void A_GroupValue_Read__res(uint8_t ack_request, uint16_t ASAP, Priority priority,
                             uint8_t hop_count_type, uint8_t *data);
 
 /**
@@ -113,7 +113,7 @@ void A_GroupValue_Read__res(uint8_t ack_request, uint8_t ASAP, Priority priority
  * \param a_status: ok: A_GroupValue_Read.res sent successfully with T_Data_Group service not_ok:
  * transmission of the associated T_Data_Group request frame did not succeed
  */
-void A_GroupValue_Read__Rcon(uint8_t ack_request, uint8_t ASAP, Priority priority,
+void A_GroupValue_Read__Rcon(uint8_t ack_request, uint16_t ASAP, Priority priority,
                              uint8_t hop_count_type, uint8_t *data, A_Status a_status);
 
 /**
@@ -124,7 +124,7 @@ void A_GroupValue_Read__Rcon(uint8_t ack_request, uint8_t ASAP, Priority priorit
  * \param data: the value of the associated Service Access Point
  * \param octet_count: Need for check and debug only
  */
-void A_GroupValue_Read__Acon(uint8_t ASAP, Priority priority, uint8_t hop_count_type, uint8_t *data,
+void A_GroupValue_Read__Acon(uint16_t ASAP, Priority priority, uint8_t hop_count_type, uint8_t *data,
                              uint8_t octet_count);
 
 /* 3.1.3 A_GroupValue_Write-service */
@@ -137,7 +137,7 @@ void A_GroupValue_Read__Acon(uint8_t ASAP, Priority priority, uint8_t hop_count_
  * \param hop_count_type: hop count 7 or standard
  * \param data: data of the associated application layer Service Access Point
  */
-void A_GroupValue_Write__req(uint8_t ack_request, uint8_t ASAP, Priority priority,
+void A_GroupValue_Write__req(uint8_t ack_request, uint16_t ASAP, Priority priority,
                              uint8_t hop_count_type, uint8_t *data);
 
 /**
@@ -150,7 +150,7 @@ void A_GroupValue_Write__req(uint8_t ack_request, uint8_t ASAP, Priority priorit
  * \param a_status: ok:  A_GroupValue_Write sent successfully with T_Data_Group service not_ok:
  * transmission of the associated T_Data_Group request frame did not succeed
  */
-void A_GroupValue_Write__Lcon(uint8_t ack_request, uint8_t ASAP, Priority priority,
+void A_GroupValue_Write__Lcon(uint8_t ack_request, uint16_t ASAP, Priority priority,
                               uint8_t hop_count_type, uint8_t *data, A_Status a_status);
 
 /**
@@ -161,7 +161,7 @@ void A_GroupValue_Write__Lcon(uint8_t ack_request, uint8_t ASAP, Priority priori
  * \param data: data of the associated application layer Service Access Point
  * \param octet_count: Need for check and debug only
  */
-void A_GroupValue_Write__ind(uint8_t ASAP, Priority priority, uint8_t hop_count_type, uint8_t *data,
+void A_GroupValue_Write__ind(uint16_t ASAP, Priority priority, uint8_t hop_count_type, uint8_t *data,
                              uint8_t octet_count);
 
 /* 3.2 Application Layer services on Broadcast Communication Mode */
@@ -810,7 +810,7 @@ void A_DomainAddress_Read__res(uint8_t ack_request, Priority priority, uint8_t h
  * \param ASAP: local reference of the Service Access Point
  * \param descriptor_type type of the Device Descriptor
  */
-void A_DeviceDescriptor_Read__ind(Priority priority, uint8_t hop_count_type, uint8_t ASAP, uint8_t descriptor_type);
+void A_DeviceDescriptor_Read__ind(Priority priority, uint8_t hop_count_type, uint16_t ASAP, uint8_t descriptor_type);
 
 /**
  * \fn A_DeviceDescriptor_Read.res(ack_request, priority, hop_count_type, ASAP, descriptor_type,
@@ -820,7 +820,7 @@ void A_DeviceDescriptor_Read__ind(Priority priority, uint8_t hop_count_type, uin
  * \param descriptor_type type of the Device Descriptor
  * \param device_descriptor: the Device descriptor of the communication controller
  */
-void A_DeviceDescriptor_Read__res(uint8_t ack_request, Priority priority, uint8_t hop_count_type, uint8_t ASAP, uint8_t descriptor_type,
+void A_DeviceDescriptor_Read__res(uint8_t ack_request, Priority priority, uint8_t hop_count_type, uint16_t ASAP, uint8_t descriptor_type,
                                   uint16_t device_descriptor);
 
 

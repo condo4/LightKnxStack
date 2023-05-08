@@ -16,6 +16,7 @@ static volatile uint8_t TX[MAX_KNX_TELEGRAM_SIZE] = {
 static uint8_t tx_busy = 0;
 static uint8_t tx_index = 0;
 static uint8_t hop_count_type = 6;
+static unsigned char m_nsdu[64];
 
 
 
@@ -25,7 +26,7 @@ static enum N_Mode {
     Data_Group,
     Data_Broadcast,
     Data_SystemBroadcast,
-    Data_Individual_confirm,
+    Wait_L_Data_Echo,
 } _mode = None;
 
 static KnxAddress _destination_address;
@@ -33,7 +34,6 @@ static uint8_t _hop_count_type;
 static uint8_t _octet_count;
 static Priority _priority;
 static KnxAddress _source_address;
-static uint8_t *_nsdu;
 
 static volatile uint8_t _tx_octet_count;
 void L_Data__req(uint8_t ack_request, AddressType address_type, KnxAddress destination_address,
@@ -44,7 +44,7 @@ void L_Data__req(uint8_t ack_request, AddressType address_type, KnxAddress desti
     uint8_t crc = 0;
 
 #if defined(DEBUG)
-    console_print_string("L_Data__req(");
+    console_print_string(" L_Data__req(");
     console_print_int(ack_request);
     console_print_string(", ");
     console_print_int(address_type);
@@ -98,7 +98,7 @@ void L_Data__req(uint8_t ack_request, AddressType address_type, KnxAddress desti
     TX[6 + octet_count] = ~crc;
 
 #ifdef DEBUG
-    console_print_string("<--- ");
+    console_print_string("< ");
     console_print_bytes((uint8_t *)TX, octet_count + 7);
     console_print_string("\r\n");
 #endif
@@ -121,6 +121,12 @@ void L_Data__req(uint8_t ack_request, AddressType address_type, KnxAddress desti
     /* Wait for end of transmition, managed by ISR */
     while(_tx_octet_count > 0){}
 
+    /* Wait end of frame recived */
+    _mode = Wait_L_Data_Echo;
+    while(_mode == Wait_L_Data_Echo){}
+#if defined(DEBUG)
+    console_print_string(" L_Data__req() END\r\n");
+#endif
 }
 
 void L_Data__con(AddressType address_type, KnxAddress destination_address, FrameFormat frame_format,
@@ -143,7 +149,6 @@ void L_Data__con(AddressType address_type, KnxAddress destination_address, Frame
             tx_busy = 0;
             tx_index = 0;
             _tx_octet_count = 0;
-            _mode = Data_Individual_confirm;
             return;
         }
 
@@ -163,8 +168,19 @@ void L_Data__ind(uint8_t ack_request, AddressType address_type, KnxAddress desti
                  FrameFormat frame_format, uint8_t *lsdu, uint8_t octet_count, Priority priority,
                  KnxAddress source_address)
 {
+    int i;
+    if(_mode == Wait_L_Data_Echo)
+    {
+        /* Echo Send frame finished */
 #if defined(DEBUG_LAYER_DATA_LINK)
-    console_print_string("L_Data__ind(");
+        console_print_string(" L_Data__ind() ECHO\r\n");
+#endif
+        _mode = None;
+        return;
+    }
+    
+#if defined(DEBUG_LAYER_DATA_LINK)
+    console_print_string(" L_Data__ind(");
     console_print_int(ack_request);
     console_print_string(", ");
     print_address_type(address_type);
@@ -173,14 +189,9 @@ void L_Data__ind(uint8_t ack_request, AddressType address_type, KnxAddress desti
     else print_dest_group_address(destination_address);
     console_print_string(", ");
     print_frame_format(frame_format);
-    console_print_string(", [");
-    for (int i = 0; i < octet_count - 1; i++)
-    {
-        console_print_hex(lsdu[i]);
-        console_print_char(' ');
-    }
-    console_print_hex(lsdu[octet_count - 1]);
-    console_print_string("], ");
+    console_print_string(", ");
+    console_print_bytes(lsdu, octet_count);
+    console_print_string(", ");
     console_print_int(octet_count);
     console_print_string(", ");
     print_priority(priority);
@@ -189,17 +200,21 @@ void L_Data__ind(uint8_t ack_request, AddressType address_type, KnxAddress desti
     console_print_string(")\r\n");
 #endif
 
+
     if(_mode != None)
     {
         // TIMING ERROR !!!!
         return;
+    }
+    for(i = 1; i < octet_count; i++)
+    {
+        m_nsdu[i - 1] = lsdu[i];
     }
     _destination_address = destination_address;
     _hop_count_type = LSDU_HOP_COUNT(lsdu);
     _octet_count = octet_count - 1;
     _priority = priority;
     _source_address = source_address;
-    _nsdu = lsdu + 1;
 
     if (frame_format == L_Data_Standard)
     {
@@ -277,8 +292,9 @@ void L_SystemBroadcast__ind(uint8_t ack_request, AddressType address_type,
                             KnxAddress destination_address, uint8_t *lsdu, uint8_t octet_count,
                             Priority priority, KnxAddress source_address)
 {
+    int i;
 #if defined(DEBUG_LAYER_DATA_LINK)
-    console_print_string("L_SystemBroadcast__ind(");
+    console_print_string(" L_SystemBroadcast__ind(");
     console_print_int(ack_request);
     console_print_string(", ");
     print_address_type(address_type);
@@ -305,7 +321,10 @@ void L_SystemBroadcast__ind(uint8_t ack_request, AddressType address_type,
     _octet_count = octet_count - 1;
     _priority = priority;
     _source_address = source_address;
-    _nsdu = lsdu + 1;
+    for(i = 1; i < octet_count; i++)
+    {
+        m_nsdu[i - 1] = lsdu[i];
+    }
     _mode = Data_SystemBroadcast;
 }
 
@@ -334,16 +353,6 @@ void L_Loop()
             case None:
                 break;
 
-            case Data_Individual_confirm:
-                N_Data_Individual__con(
-                    0,
-                    _destination_address,
-                    6,
-                    _octet_count,
-                    _priority,
-                    _nsdu,
-                    n_ok);
-                break;
             case Data_Individual:
                 N_Data_Individual__ind(
                     _destination_address,
@@ -351,7 +360,7 @@ void L_Loop()
                     _octet_count,
                     _priority,
                     _source_address,
-                    _nsdu);
+                    m_nsdu);
                 break;
             case Data_Group:
                 N_Data_Group__ind(
@@ -359,7 +368,7 @@ void L_Loop()
                     _hop_count_type,
                     _octet_count,
                     _priority,
-                    _nsdu,
+                    m_nsdu,
                     _source_address);
                 break;
             case Data_Broadcast:
@@ -368,12 +377,12 @@ void L_Loop()
                     _octet_count,
                     _priority,
                     _source_address,
-                    _nsdu);
+                    m_nsdu);
                 break;
             case Data_SystemBroadcast:
                 N_Data_SystemBroadcast__ind(
                     _hop_count_type,
-                    _nsdu,
+                    m_nsdu,
                     _octet_count,
                     _priority,
                     _source_address);

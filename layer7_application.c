@@ -9,10 +9,10 @@
  * \param hop_count_type: hop count 7 or standard
  * \param priority: system, urgent, normal or low priority
  */
-void A_GroupValue_Read__ind(uint8_t ASAP, Priority priority, uint8_t hop_count_type)
+void A_GroupValue_Read__ind(uint16_t ASAP, Priority priority, uint8_t hop_count_type)
 {
 #if defined(DEBUG_LAYER_APPLICATION)
-    console_print_string("A_GroupValue_Read__ind(");
+    console_print_string("     A_GroupValue_Read__ind(");
     console_print_int(ASAP);
     console_print_char(',');
     print_priority(priority);
@@ -29,12 +29,12 @@ void A_GroupValue_Read__ind(uint8_t ASAP, Priority priority, uint8_t hop_count_t
  * \param hop_count_type: hop count 7 or standard
  * \param data: data of the associated application layer Service Access Point
  */
-void A_GroupValue_Write__ind(uint8_t ASAP, Priority priority, uint8_t hop_count_type, uint8_t *data,
+void A_GroupValue_Write__ind(uint16_t ASAP, Priority priority, uint8_t hop_count_type, uint8_t *data,
                              uint8_t octet_count)
 {
 #if defined(DEBUG_LAYER_APPLICATION)
-    console_print_string("A_GroupValue_Write__ind(");
-    console_print_int(ASAP);
+    console_print_string("     A_GroupValue_Write__ind(");
+    console_print_dev_addr(ASAP);
     console_print_char(',');
     print_priority(priority);
     console_print_char(',');
@@ -57,12 +57,12 @@ void A_GroupValue_Write__ind(uint8_t ASAP, Priority priority, uint8_t hop_count_
  * \param data: the value of the associated Service Access Point
  * \param octet_count: Need for check and debug only
  */
-void A_GroupValue_Read__Acon(uint8_t ASAP, Priority priority, uint8_t hop_count_type, uint8_t *data,
+void A_GroupValue_Read__Acon(uint16_t ASAP, Priority priority, uint8_t hop_count_type, uint8_t *data,
                              uint8_t octet_count)
 {
 #if defined(DEBUG_LAYER_APPLICATION)
-    console_print_string("A_GroupValue_Read__Acon(");
-    console_print_int(ASAP);
+    console_print_string("     A_GroupValue_Read__Acon(");
+    console_print_dev_addr(ASAP);
     console_print_char(',');
     print_priority(priority);
     console_print_string(", ");
@@ -86,7 +86,7 @@ void A_GroupValue_Read__Acon(uint8_t ASAP, Priority priority, uint8_t hop_count_
 void A_IndividualAddress_Read__ind(Priority priority, uint8_t hop_count_type)
 {
 #if defined(DEBUG_LAYER_APPLICATION)
-    console_print_string("A_IndividualAddress_Read__ind(");
+    console_print_string("     A_IndividualAddress_Read__ind(");
     print_priority(priority);
     console_print_string(", ");
     console_print_int(hop_count_type);
@@ -99,7 +99,7 @@ void A_IndividualAddress_Write__ind(Priority priority, uint8_t hop_count_type,
                                     KnxAddress newaddress)
 {
 #if defined(DEBUG_LAYER_APPLICATION)
-    console_print_string("A_IndividualAddress_Write__ind(");
+    console_print_string("     A_IndividualAddress_Write__ind(");
     print_priority(priority);
     console_print_string(", ");
     console_print_int(hop_count_type);
@@ -123,7 +123,7 @@ void A_IndividualAddress_Read__res(uint8_t ack_request, Priority priority, uint8
     static uint8_t pdu[2] = { A_IndividualAddress_Response >> 8,
                               A_IndividualAddress_Response & 0xFF };
 #if defined(DEBUG_LAYER_APPLICATION)
-    console_print_string("A_IndividualAddress_Read__res(");
+    console_print_string("     A_IndividualAddress_Read__res(");
     console_print_int(ack_request);
     console_print_string(", ");
     print_priority(priority);
@@ -145,7 +145,7 @@ void A_IndividualAddress_Read__res(uint8_t ack_request, Priority priority, uint8
 void A_DomainAddress_Read__ind(Priority priority, uint8_t hop_count_type)
 {
 #if defined(DEBUG_LAYER_APPLICATION)
-    console_print_string("A_DomainAddress_Read__ind(");
+    console_print_string("     A_DomainAddress_Read__ind(");
     print_priority(priority);
     console_print_string(", ");
     console_print_int(hop_count_type);
@@ -169,7 +169,7 @@ void A_DomainAddress_Read__res(uint8_t ack_request, Priority priority, uint8_t h
     pdu[2] = (domain_address >> 8) & 0xFF;
     pdu[3] = domain_address & 0xFF;
 #if defined(DEBUG_LAYER_APPLICATION)
-    console_print_string("A_DomainAddress_Read__res(");
+    console_print_string("     A_DomainAddress_Read__res(");
     console_print_int(ack_request);
     console_print_string(", ");
     print_priority(priority);
@@ -196,10 +196,10 @@ void A_Connect__ind(KnxAddress source)
  * \param ASAP: local reference of the Service Access Point
  * \param descriptor_type type of the Device Descriptor
  */
-void A_DeviceDescriptor_Read__ind(Priority priority, uint8_t hop_count_type, uint8_t ASAP, uint8_t descriptor_type)
+void A_DeviceDescriptor_Read__ind(Priority priority, uint8_t hop_count_type, uint16_t ASAP, uint8_t descriptor_type)
 {
 #if defined(DEBUG_LAYER_APPLICATION)
-    console_print_string("A_DeviceDescriptor_Read__ind(");
+    console_print_string("     A_DeviceDescriptor_Read__ind(");
     print_priority(priority);
     console_print_string(", ");
     console_print_int(hop_count_type);
@@ -222,11 +222,11 @@ void A_DeviceDescriptor_Read__ind(Priority priority, uint8_t hop_count_type, uin
     }
 }
 
-void A_DeviceDescriptor_Read__res(uint8_t ack_request, Priority priority, uint8_t hop_count_type, uint8_t ASAP, uint8_t descriptor_type,
+void A_DeviceDescriptor_Read__res(uint8_t ack_request, Priority priority, uint8_t hop_count_type, uint16_t ASAP, uint8_t descriptor_type,
                                   uint16_t device_descriptor)
 {
 #if defined(DEBUG_LAYER_APPLICATION)
-    console_print_string("A_DeviceDescriptor_Read__res(");
+    console_print_string("     A_DeviceDescriptor_Read__res(");
     console_print_int(ack_request);
     console_print_string(", ");
     print_priority(priority);
@@ -247,5 +247,12 @@ void A_DeviceDescriptor_Read__res(uint8_t ack_request, Priority priority, uint8_
     tsdu[1] |= descriptor_type;
     tsdu[2] = device_descriptor >> 8;
     tsdu[3] = device_descriptor & 0xFF;
-    T_Data_Individual__req(ack_request, hop_count_type, 4, priority, ASAP, tsdu);
+    if(T_Data_IsConnected())
+    {
+        T_Data_Connected__req(4, priority, ASAP, tsdu);
+    }
+    else
+    {
+        T_Data_Individual__req(ack_request, hop_count_type, 4, priority, ASAP, tsdu);
+    }
 }

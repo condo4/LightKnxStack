@@ -6,8 +6,6 @@
 
 #include "debug.h"
 
-
-static bool _confirmed = false;
 /* This layer must be the first layer asynchronious */
 
 /* 2.3 Parameters of Network Layer */
@@ -31,54 +29,21 @@ void N_Data_Individual__req(uint8_t ack_request, KnxAddress destination_address,
                             uint8_t *nsdu)
 {
 #if defined(DEBUG_LAYER_NETWORK)
-    int i;
-    console_print_string("N_Data_Individual__req(");
+    console_print_string("  N_Data_Individual__req(");
     console_print_int(ack_request);
+    console_print_string(", ");
+    console_print_dev_addr(destination_address);
     console_print_string(", ");
     console_print_int(hop_count_type);
     console_print_string(", ");
     console_print_int(octet_count);
     console_print_string(", ");
     print_priority(priority);
-    console_print_string(", [");
-    for (i = 0; i < octet_count - 1; i++)
-    {
-        console_print_hex(nsdu[i]);
-        console_print_char(' ');
-    }
-    console_print_hex(nsdu[octet_count - 1]);
-    console_print_string("])\r\n");
+    console_print_string(",");
+    console_print_bytes(nsdu, octet_count);
+    console_print_string(")\r\n");
 #endif
     L_Data__req(ack_request, Individual, destination_address, L_Data_Standard, nsdu, octet_count, priority, device_induvidual_address());
-
-    /* Wait confirmation */
-
-    while(!_confirmed)
-    {
-
-    }
-}
-
-/**
- * \fn N_Data_Individual.con(ack_request, destination_address, hop_count_type, octet_count,
- * priority, nsdu, n_status) \param ack_request Data Link Layer acknowledge requested or don’t care
- * \param destination_address Individual Address of the destination
- * \param hop_count_type hop count 7 or Network Layer Parameter
- * \param octet_count length information as described in Data Link Layer
- * \param priority system, urgent, normal or low priority
- * \param nsdu this is the user data that has been transferred by Network Layer
- * \param n_status ok: N_Data_Individual sent successfully with L_Data not_ok: transmission of the
- * associated L_Data request frame did not succeed
- */
-void N_Data_Individual__con(uint8_t ack_request, KnxAddress destination_address,
-                            uint8_t hop_count_type, uint8_t octet_count, Priority priority,
-                            uint8_t *nsdu, N_Status n_status)
-{
-#if defined(DEBUG_LAYER_NETWORK)
-    console_print_string("N_Data_Individual__con() confirmed");
-    console_print_string("])\r\n");
-#endif
-    _confirmed = true;
 }
 
 
@@ -95,7 +60,7 @@ void N_Data_Individual__ind(KnxAddress destination_address, uint8_t hop_count_ty
                             uint8_t *nsdu)
 {
 #if defined(DEBUG_LAYER_NETWORK)
-    console_print_string("N_Data_Individual__ind(");
+    console_print_string("  N_Data_Individual__ind(");
     print_dest_indiv_address(destination_address);
     console_print_string(", ");
     console_print_int(hop_count_type);
@@ -132,7 +97,7 @@ void N_Data_Group__ind(KnxAddress destination_address, uint8_t hop_count_type, u
                        Priority priority, uint8_t *nsdu, KnxAddress source_address)
 {
 #if defined(DEBUG_LAYER_NETWORK)
-    console_print_string("N_Data_Group__ind(");
+    console_print_string("  N_Data_Group__ind(");
     print_dest_group_address(destination_address);
     console_print_string(", ");
     console_print_int(hop_count_type);
@@ -170,8 +135,7 @@ void N_Data_Broadcast__req(uint8_t ack_request, uint8_t hop_count_type, uint8_t 
                            Priority priority, uint8_t *nsdu)
 {
 #if defined(DEBUG_LAYER_NETWORK)
-    int i;
-    console_print_string("N_Data_Broadcast__req(");
+    console_print_string("  N_Data_Broadcast__req(");
     console_print_int(ack_request);
     console_print_string(", ");
     console_print_int(hop_count_type);
@@ -185,7 +149,6 @@ void N_Data_Broadcast__req(uint8_t ack_request, uint8_t hop_count_type, uint8_t 
 #endif
     L_Data__req(ack_request, Multicast, 0, L_Data_Standard, nsdu, octet_count, priority,
                 device_induvidual_address());
-    console_print_string("N_Data_Broadcast__req END OK\r\n");
 }
 
 /**
@@ -201,7 +164,7 @@ void N_Data_Broadcast__ind(uint8_t hop_count_type, uint8_t octet_count, Priority
 {
 #if defined(DEBUG_LAYER_NETWORK)
 
-    console_print_string("N_Data_Broadcast__ind(");
+    console_print_string("  N_Data_Broadcast__ind(");
     console_print_int(hop_count_type);
     console_print_string(", ");
     console_print_int(octet_count);
@@ -225,7 +188,7 @@ void N_Data_SystemBroadcast__ind(uint8_t hop_count_type, uint8_t *nsdu, uint8_t 
                                  Priority priority, KnxAddress source_address)
 {
 #ifdef DEBUG_LAYER_NETWORK
-    console_print_string("N_Data_SystemBroadcast__ind(");
+    console_print_string("  N_Data_SystemBroadcast__ind(");
     console_print_int(hop_count_type);
     console_print_string(", ");
     console_print_string(", [");

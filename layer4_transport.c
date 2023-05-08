@@ -413,7 +413,7 @@ static void ack_timeout_indication()
  * \param tsdu: this is the user data that has been transferred by Transport Layer
  */
 void T_Data_Group__ind(uint8_t hop_count_type, uint8_t octet_count, Priority priority,
-                       KnxAddress source_address, uint8_t TSAP, uint8_t *tsdu)
+                       KnxAddress source_address, uint16_t TSAP, uint8_t *tsdu)
 {
     uint16_t index = 0;
     int32_t asap = 0;
@@ -421,7 +421,7 @@ void T_Data_Group__ind(uint8_t hop_count_type, uint8_t octet_count, Priority pri
 
 #if defined(DEBUG_LAYER_TRANSPORT)
     int i;
-    console_print_string("T_Data_Group__ind(");
+    console_print_string("   T_Data_Group__ind(");
     console_print_int(hop_count_type);
     console_print_string(", ");
     console_print_int(octet_count);
@@ -520,7 +520,7 @@ void T_Data_Individual__ind(uint8_t hop_count_type, uint8_t octet_count, Priorit
                             KnxAddress source_address, uint8_t *tsdu)
 {
 #ifdef DEBUG_LAYER_TRANSPORT
-    console_print_string("T_Data_Individual__ind(");
+    console_print_string("   T_Data_Individual__ind(");
     console_print_int(hop_count_type);
     console_print_char(',');
     console_print_int(octet_count);
@@ -543,8 +543,6 @@ void T_Data_Individual__ind(uint8_t hop_count_type, uint8_t octet_count, Priorit
     switch(pdu_type(tsdu[0])) {
         case DataInduvidual:
         {
-#ifdef DEBUG_LAYER_TRANSPORT
-#endif
             console_print_string(">>> TODO: T_Data_Individual__ind : DataInduvidual\r\n");
             // TODO: application_data_individual_indication(hopType, priority, source, tpdu.apdu());
             break;
@@ -695,7 +693,7 @@ void T_Data_Individual__ind(uint8_t hop_count_type, uint8_t octet_count, Priorit
  * transmission of the associated N_Data_Individual request frame did not succeed
  */
 void T_Data_Individual__con(uint8_t ack_request, uint8_t hop_count_type, uint8_t octet_count,
-                            Priority priority, uint8_t TSAP, uint8_t *tsdu, T_Status t_status)
+                            Priority priority, uint16_t TSAP, uint8_t *tsdu, T_Status t_status)
 {
     switch(pdu_type(tsdu[0])) {
         case DataInduvidual:
@@ -773,7 +771,7 @@ void T_Connect__req(KnxAddress destination_address, Priority priority)
  * \param priority highest, urgent, normal or low priority
  * \param TSAP identifier of the service access point to which the connection shall be released
  */
-void T_Disconnect__req(Priority priority, uint8_t TSAP)
+void T_Disconnect__req(Priority priority, uint16_t TSAP)
 {
     RUN_EVENT(26, TSAP, priority, 0, 0);
 }
@@ -787,7 +785,7 @@ void T_Disconnect__req(Priority priority, uint8_t TSAP)
  * \param TSAP: identifier of the service access point to which the frame shall be sent
  * \param tsdu: this is the user data to be transferred by Transport Layer
  */
-void T_Data_Connected__req(uint8_t octet_count, Priority priority, uint8_t TSAP, uint8_t *tsdu)
+void T_Data_Connected__req(uint8_t octet_count, Priority priority, uint16_t TSAP, uint8_t *tsdu)
 {
     RUN_EVENT(15, 0, priority, tsdu, octet_count);
 }
@@ -806,7 +804,7 @@ void T_Data_Broadcast__req(uint8_t ack_request, uint8_t hop_count_type, uint8_t 
                            Priority priority, uint8_t *tsdu)
 {
 #ifdef DEBUG_LAYER_TRANSPORT
-    console_print_string("T_Data_Broadcast__req(");
+    console_print_string("   T_Data_Broadcast__req(");
     console_print_int(ack_request);
     console_print_char(',');
     console_print_int(hop_count_type);
@@ -839,7 +837,7 @@ void T_Data_Broadcast__ind(uint8_t hop_count_type, uint8_t octet_count, Priority
 {
 #ifdef DEBUG_LAYER_TRANSPORT
     int i;
-    console_print_string("T_Data_Broadcast__ind(");
+    console_print_string("   T_Data_Broadcast__ind(");
     console_print_int(hop_count_type);
     console_print_string(", ");
     console_print_int(octet_count);
@@ -865,7 +863,6 @@ void T_Data_Broadcast__ind(uint8_t hop_count_type, uint8_t octet_count, Priority
     case A_IndividualAddress_Read:
         if (device_prog_mode())
         {
-            console_print_string("A_IndividualAddress_Read\r\n");
             A_IndividualAddress_Read__ind(priority, hop_count_type);
         }
         break;
@@ -873,7 +870,6 @@ void T_Data_Broadcast__ind(uint8_t hop_count_type, uint8_t octet_count, Priority
     case A_IndividualAddress_Write:
         if (device_prog_mode())
         {
-            console_print_string("A_IndividualAddress_Write TOCHECK\r\n");
             uint16_t addr = (tsdu[2] << 8) | (tsdu[3]);
             A_IndividualAddress_Write__ind(priority, hop_count_type, addr);
         }
@@ -888,7 +884,7 @@ void T_Data_Broadcast__ind(uint8_t hop_count_type, uint8_t octet_count, Priority
         /* Not sure what to do... generally here after echo... */
         break;
     default:
-        console_print_string("T_Data_Broadcast__ind not managed ");
+        console_print_string("   T_Data_Broadcast__ind not managed ");
         console_print_hex(pdu >> 8);
         console_print_hex(pdu);
         console_print_string("\r\n");
@@ -907,28 +903,22 @@ void T_Data_Broadcast__ind(uint8_t hop_count_type, uint8_t octet_count, Priority
  * remote partner) \param tsdu: is the user data to be transferred by Transport Layer
  */
 void T_Data_Individual__req(uint8_t ack_request, uint8_t hop_count_type, uint8_t octet_count,
-                            Priority priority, uint8_t TSAP, uint8_t *tsdu)
+                            Priority priority, uint16_t TSAP, uint8_t *tsdu)
 {
 #ifdef DEBUG_LAYER_TRANSPORT
-    int i;
-    console_print_string("T_Data_Individual__req(");
+    console_print_string("   T_Data_Individual__req(");
     console_print_int(ack_request);
-    console_print_char(',');
+    console_print_string(", ");
     console_print_int(hop_count_type);
-    console_print_char(',');
+    console_print_string(", ");
     console_print_int(octet_count);
-    console_print_char(',');
+    console_print_string(", ");
     print_priority(priority);
-    console_print_char(',');
-    print_source_address(TSAP);
-    console_print_string(", [");
-    for (int i = 0; i < octet_count - 1; i++)
-    {
-        console_print_hex(tsdu[i]);
-        console_print_char(' ');
-    }
-    console_print_hex(tsdu[octet_count - 1]);
-    console_print_string("])\r\n");
+    console_print_string(", ");
+    console_print_dev_addr(TSAP);
+    console_print_string(", ");
+    console_print_bytes(tsdu, octet_count);
+    console_print_string(")\r\n");
 #endif
     N_Data_Individual__req(ack_request, TSAP, hop_count_type, octet_count, priority, tsdu);
 }
@@ -941,25 +931,20 @@ void T_Data_Individual__req(uint8_t ack_request, uint8_t hop_count_type, uint8_t
  * \param TSAP: identifier of the service access point from which the frame is received
  * \param tsdu: this is the user data that has been transferred by Transport Layer
  */
-void T_Data_Connected__ind(uint8_t octet_count, Priority priority, uint8_t TSAP, uint8_t *tsdu)
+void T_Data_Connected__ind(uint8_t octet_count, Priority priority, uint16_t TSAP, uint8_t *tsdu)
 {
     //application_data_connected_indication
 #ifdef DEBUG_LAYER_TRANSPORT
     int i;
-    console_print_string("T_Data_Connected__ind(");
+    console_print_string("   T_Data_Connected__ind(");
     console_print_int(octet_count);
     console_print_string(", ");
     print_priority(priority);
     console_print_string(", ");
-    print_source_address(TSAP);
-    console_print_string(", [");
-    for (i = 0; i < octet_count - 1; i++)
-    {
-        console_print_hex(tsdu[i]);
-        console_print_char(' ');
-    }
-    console_print_hex(tsdu[octet_count - 1]);
-    console_print_string("])\r\n");
+    console_print_dev_addr(TSAP);
+    console_print_string(", ");
+    console_print_bytes(tsdu, octet_count);
+    console_print_string(")\r\n");
 #endif
 
     uint16_t pdu = (tsdu[0] << 8 | tsdu[1]) & 0x03C0;
@@ -971,10 +956,19 @@ void T_Data_Connected__ind(uint8_t octet_count, Priority priority, uint8_t TSAP,
         A_DeviceDescriptor_Read__ind(priority, 6, TSAP, type);
         break;
 
+    case A_Memory_Write:
+        //memory_write();
+        console_print_string("TODO: A_Memory_Write ??");
+        break;
     default:
         console_print_string("TODO: T_Data_Connected__ind pdu=0x");
         console_print_hex(pdu >> 8);
         console_print_hex(pdu);
         console_print_string("\r\n");
     }
+}
+
+bool T_Data_IsConnected()
+{
+    return _current_state == OPEN_IDLE;
 }

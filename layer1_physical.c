@@ -58,9 +58,9 @@ void send_to_controler(size_t size)
     m_to_send = size;
     m_tx_index = 0;
 
-#ifdef DEBUG
-    console_print_char('>');
-    console_print_hex(m_send_msg[m_tx_index]);
+#ifdef DEBUG_LAYER_PHYSICAL_TX
+    console_print_char('%');
+    console_print_bytes(m_send_msg, size);
     console_print_char(' ');
 #endif
     device_uart_tx(&m_send_msg[m_tx_index]);
@@ -80,10 +80,6 @@ void device_uart_tx_confirm()
     /* EOT */
     m_tx_index = 0;
     m_to_send = 0;
-
-#ifdef DEBUG
-    console_print_string("\r\n");
-#endif
 
     Ph_Data__con(l_ok);
 }
@@ -300,6 +296,13 @@ void EOF_TIMER_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
             if((m_recive_msg[0] & 0xD3) == 0x90)
             {
                 /* Standard Frame recived */
+#ifdef DEBUG_LAYER_DATA_LINK
+    console_print_string("> ");
+    console_print_bytes((uint8_t *)m_recive_msg, m_rx_index);
+    console_print_string("\r\n");
+#endif
+
+    
                 L_Data__ind(
                     1,
                     ((m_recive_msg[5] & 0x80) >> 7),

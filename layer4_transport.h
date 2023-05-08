@@ -2,6 +2,7 @@
 #define __LAYER4_TRANSPORT__
 
 #include "knx_types.h"
+#include <stdbool.h>
 
 #define T_ACK_PDU 0xC2
 
@@ -17,7 +18,7 @@
  * \param tsdu this is the user data to be transferred by Transport Layer
  */
 void T_Data_Group__req(uint8_t ack_request, uint8_t hop_count_type, uint8_t octet_count,
-                       Priority priority, uint8_t TSAP, uint8_t *tsdu);
+                       Priority priority, uint16_t TSAP, uint8_t *tsdu);
 
 /**
  * \fn T_Data_Group.con(ack_request, hop_count_type, octet_count, priority, source_address, TSAP,
@@ -30,7 +31,7 @@ void T_Data_Group__req(uint8_t ack_request, uint8_t hop_count_type, uint8_t octe
  * not_ok: transmission of the associated N_Data_Group request frame didn’t succeed
  */
 void T_Data_Group__con(uint8_t ack_request, uint8_t hop_count_type, uint8_t octet_count,
-                       Priority priority, KnxAddress source_address, uint8_t TSAP, uint8_t *tsdu,
+                       Priority priority, KnxAddress source_address, uint16_t TSAP, uint8_t *tsdu,
                        T_Status t_status);
 
 /**
@@ -43,7 +44,7 @@ void T_Data_Group__con(uint8_t ack_request, uint8_t hop_count_type, uint8_t octe
  * \param tsdu: this is the user data that has been transferred by Transport Layer
  */
 void T_Data_Group__ind(uint8_t hop_count_type, uint8_t octet_count, Priority priority,
-                       KnxAddress source_address, uint8_t TSAP, uint8_t *tsdu);
+                       KnxAddress source_address, uint16_t TSAP, uint8_t *tsdu);
 
 /* 3.3 T_Data_Tag_Group service */
 /**
@@ -181,7 +182,7 @@ void T_Data_SystemBroadcast__ind(uint8_t hop_count_type, uint8_t octet_count, Pr
  * remote partner) \param tsdu: is the user data to be transferred by Transport Layer
  */
 void T_Data_Individual__req(uint8_t ack_request, uint8_t hop_count_type, uint8_t octet_count,
-                            Priority priority, uint8_t TSAP, uint8_t *tsdu);
+                            Priority priority, uint16_t TSAP, uint8_t *tsdu);
 
 /**
  * \fn T_Data_Individual.con(ack_request, hop_count_type, octet_count, priority, TSAP, tsdu,
@@ -194,7 +195,7 @@ void T_Data_Individual__req(uint8_t ack_request, uint8_t hop_count_type, uint8_t
  * transmission of the associated N_Data_Individual request frame did not succeed
  */
 void T_Data_Individual__con(uint8_t ack_request, uint8_t hop_count_type, uint8_t octet_count,
-                            Priority priority, uint8_t TSAP, uint8_t *tsdu, T_Status t_status);
+                            Priority priority, uint16_t TSAP, uint8_t *tsdu, T_Status t_status);
 
 /**
  * \fn T_Data_Individual.ind(hop_count_type, octet_count, priority, TSAP, tsdu)
@@ -224,14 +225,14 @@ void T_Connect__req(KnxAddress destination_address, Priority priority);
  * N_Data_Individual service not_ok: transmission of the associated N_Data_Individual request frame
  * did not succeed
  */
-void T_Connect__con(KnxAddress destination_address, uint8_t TSAP, T_Status t_status);
+void T_Connect__con(KnxAddress destination_address, uint16_t TSAP, T_Status t_status);
 
 /**
  * \fn T_Connect.ind(TSAP)
  * \param TSAP: identifier of the service access point (may be direct the Individual Address of the
  * remote partner)
  */
-void T_Connect__ind(uint8_t TSAP);
+void T_Connect__ind(uint16_t TSAP);
 
 /* 3.8 T_Disconnect Service */
 
@@ -240,7 +241,7 @@ void T_Connect__ind(uint8_t TSAP);
  * \param priority highest, urgent, normal or low priority
  * \param TSAP identifier of the service access point to which the connection shall be released
  */
-void T_Disconnect__req(Priority priority, uint8_t TSAP);
+void T_Disconnect__req(Priority priority, uint16_t TSAP);
 
 /**
  * \fn T_Disconnect.con(priority, TSAP, t_status)
@@ -249,13 +250,13 @@ void T_Disconnect__req(Priority priority, uint8_t TSAP);
  * requested \param t_status ok: T_Disconnect.req sent successfully with N_Data_Individual service
  * not_ok: The transmission of the associated N_Data_Individual-frame did not succeed
  */
-void T_Disconnect__con(Priority priority, uint8_t TSAP, T_Status t_status);
+void T_Disconnect__con(Priority priority, uint16_t TSAP, T_Status t_status);
 
 /**
  * \fn T_Disconnect.ind(TSAP)
  * \param TSAP: Identifier of the service access point to which the connection is released.
  */
-void T_Disconnect__ind(uint8_t TSAP);
+void T_Disconnect__ind(uint16_t TSAP);
 
 /* 3.9 T_Data_Connected Service */
 
@@ -266,13 +267,13 @@ void T_Disconnect__ind(uint8_t TSAP);
  * \param TSAP: identifier of the service access point to which the frame shall be sent
  * \param tsdu: this is the user data to be transferred by Transport Layer
  */
-void T_Data_Connected__req(uint8_t octet_count, Priority priority, uint8_t TSAP, uint8_t *tsdu);
+void T_Data_Connected__req(uint8_t octet_count, Priority priority, uint16_t TSAP, uint8_t *tsdu);
 
 /**
  * \fn T_Data_Connected.con(TSAP)
  * \param TSAP: identifier of the service access point to which the frame has been sent
  */
-void T_Data_Connected__con(uint8_t TSAP);
+void T_Data_Connected__con(uint16_t TSAP);
 
 /**
  * \fn T_Data_Connected.ind(octet_count, priority, TSAP, tsdu)
@@ -281,6 +282,8 @@ void T_Data_Connected__con(uint8_t TSAP);
  * \param TSAP: identifier of the service access point from which the frame is received
  * \param tsdu: this is the user data that has been transferred by Transport Layer
  */
-void T_Data_Connected__ind(uint8_t octet_count, Priority priority, uint8_t TSAP, uint8_t *tsdu);
+void T_Data_Connected__ind(uint8_t octet_count, Priority priority, uint16_t TSAP, uint8_t *tsdu);
+
+bool T_Data_IsConnected();
 
 #endif
