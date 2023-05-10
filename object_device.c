@@ -1,3 +1,13 @@
+/*
+ * Project:   LightKnxStack
+ * Author:    Fabien Proriol
+ * Created:   2023.05.10
+ * 
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 #include <string.h>
 #include "object_device.h"
 #include "object_memory.h"
@@ -141,7 +151,6 @@ void device_induvidual_address_set(uint16_t value)
 {
     _ownAddress = value;
     U_SetAddress__req(_ownAddress & 0xFF, (_ownAddress & 0xFF00) >> 8);
-    memory_write();
 }
 
 bool device_induvidual_address_duplication()

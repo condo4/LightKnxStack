@@ -1,3 +1,14 @@
+/*
+ * Project:   LightKnxStack
+ * Author:    Fabien Proriol
+ * Created:   2023.05.10
+ * 
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
+
 #include "layer3_network.h"
 #include "layer2_data_link.h"
 #include "layer4_transport.h"

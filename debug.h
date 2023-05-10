@@ -1,9 +1,21 @@
+/*
+ * Project:   LightKnxStack
+ * Author:    Fabien Proriol
+ * Created:   2023.05.10
+ * 
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
+
 #ifndef __DEBUG_H__
 #define __DEBUG_H__
 
 #include "console.h"
 //#define DEBUG_LAYER_PHYSICAL
-//#define DEBUG_LAYER_DATA_LINK
+//#define DEBUG_LAYER_PHYSICAL_TX
+//#define DEBUG_LAYER_PHYSICAL_RX
+#define DEBUG_LAYER_DATA_LINK
 #define DEBUG_LAYER_NETWORK
 #define DEBUG_LAYER_TRANSPORT
 #define DEBUG_LAYER_APPLICATION
